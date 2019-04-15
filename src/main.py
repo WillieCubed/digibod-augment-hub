@@ -31,26 +31,49 @@ class AugmentControllerMonitor(Thread):
     Augment Controllers over I2C.
     """
 
-    CONTROLLER_I2C_ADDRESS = 0x16
+    CONTROLLER_I2C_MIN_ADDRESS = 0x10
+    CONTROLLER_I2C_MAX_ADDRESS = 0x15
 
     def __init__(self):
         super().__init__()
         self._should_stop = False
         self._bus = SMBus(1)
+        self._snapshot_observers = []
 
     def start_monitoring(self):
-        """Begin listening to assistant queries"""
+        """Begin listening to Augment Controllers over I2C."""
         self.start()
         self.join()
 
+    def add_observer(self, *args):
+        """Add an observer called when sensor values are updated."""
+        for observer in args:
+            self._snapshot_observers.append(observer)
+
+    def remove_observer(self, observer):
+        """Remove an observer."""
+        self._snapshot_observers.remove(observer)
+
     def run(self):
+        """Continuously poll connected Augment Controllers and notify callbacks."""
         while not self._should_stop:
-            pass
+            for address in range(
+                    CONTROLLER_I2C_MIN_ADDRESS, CONTROLLER_I2C_MAX_ADDRESS): 
+                snap = self.get_snapshot(address)
+                self._notify_callbacks(snap)
 
     def stop_monitoring(self):
-        """Allow this thread to stop"""
+        """Allow this thread to stop."""
         self._should_stop = True
 
+    def get_snapshot(i2c_address: int) -> SensorSnapshot:
+        """Fetch an Augment's sensor values."""
+        snapshot = SensorSnapshot()
+        return snapshot
+
+    def _notify_observers(self, snapshot: SensorSnapshot):
+        for callback in self._snapshot_observers:
+            callback(snapshot)
 
 class AssistantCommandMonitor(Thread):
     """A thread that monitors a microphone for Google Assistant queries
@@ -74,6 +97,23 @@ class AssistantCommandMonitor(Thread):
     def stop_monitoring(self):
         """Allow this thread to stop"""
         self._should_stop = True
+
+
+class LocalConnectionManager(Thread):
+    """A manager for connecting to external monitoring devices.
+
+    This manager primarily uses Bluetooth to """
+
+    def findDevices() -> list:
+        """Return a list of open Bluetooth devices."""
+
+
+class APIServer(Thread):
+   """A server that handles incoming HTTP requests for sensor data"""
+
+    def start():
+        """Begin listening to HTTP requests."""
+
 
 class CommandInterpreter:
     """A wrapper for data collection and inference functions.
