@@ -3,5 +3,4 @@ env/
 
 # Other things
 __pycache__
-*.swp
-*.swo
+*.sw*
