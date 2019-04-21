@@ -1,5 +1,6 @@
 # Project-specific
 env/
+logs/
 
 # Other things
 __pycache__
